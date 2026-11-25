@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Finansradar</title>
+  <style>@@CSS@@</style>
+</head>
+<body>
+  <a class="skip" href="#main">Hopp til innhold</a>
+  <header class="topbar">
+    <div class="shell topbar-content">
+      <a class="brand" href="#" aria-label="Finansradar, forsiden"><span class="brand-mark" aria-hidden="true"></span> Finansradar</a>
+      <nav aria-label="Hovedmeny">
+        <a href="#signaler">Signaler</a>
+        <a href="#historisk-test">Historisk test</a>
+        <a href="#simulering">Simulering</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="shell">
+    <section class="heading" aria-labelledby="title">
+      <div><h1 id="title">Markedsoversikt</h1><p id="source-label"></p></div>
+      <div class="data-actions">
+        <button type="button" id="demo" class="secondary" hidden>Vis eksempeldata</button>
+        <button type="button" id="import" class="secondary">Importer kursdata</button>
+        <input type="file" id="data-file" accept=".csv,.json" hidden>
+      </div>
+    </section>
+    <p id="data-status" class="notice" role="status" hidden></p>
+
+    <section class="card signals" id="signaler" aria-labelledby="signal-title">
+      <div class="section-head">
+        <div><h2 id="signal-title">Signaler</h2><p>Siste tilgjengelige dagskurs per instrument. Velg en rad for å se grafen og testen.</p></div>
+        <div id="signal-count" class="tag"></div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th scope="col">Instrument</th><th scope="col">Sluttkurs</th><th scope="col">Signal</th><th scope="col">Dato</th><th scope="col">RSI</th></tr></thead>
+          <tbody id="market-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="analysis-grid">
+      <section class="card chart-panel" aria-labelledby="price-title">
+        <div class="section-head">
+          <div><h2 id="price-title">Kursutvikling</h2><p id="price-subtitle"></p></div>
+          <label class="compact">Visning
+            <select id="chart-window"><option value="90">90 dager</option><option value="180" selected>180 dager</option><option value="365">1 år</option><option value="0">Alt</option></select>
+          </label>
+        </div>
+        <div class="legend"><span><i class="price"></i>Sluttkurs</span><span><i class="fast"></i><span id="fast-key"></span></span><span><i class="slow"></i><span id="slow-key"></span></span></div>
+        <div class="chart"><canvas id="price-chart" role="img" aria-label="Dagskurser og glidende gjennomsnitt"></canvas></div>
+        <p class="chart-note" id="signal-detail"></p>
+      </section>
+      <section class="card settings" aria-labelledby="settings-title">
+        <div class="section-head"><div><h2 id="settings-title">Strategi</h2><p>Innstillingene gjelder alle instrumentene.</p></div></div>
+        <form id="strategy-form">
+          <div class="field-grid">
+            <label>Kort SMA<input name="fast" type="number" min="2" max="499" required></label>
+            <label>Lang SMA<input name="slow" type="number" min="3" max="500" required></label>
+            <label>RSI fra<input name="rsiMin" type="number" min="0" max="100" required></label>
+            <label>RSI til<input name="rsiMax" type="number" min="0" max="100" required></label>
+            <label>ATR-stop ×<input name="atrMultiplier" type="number" min="0.1" max="20" step="0.1" required></label>
+            <label>Risiko per handel (%)<input name="riskPercent" type="number" min="0.01" max="100" step="0.01" required></label>
+            <label>Startkapital<input name="capital" type="number" min="1" max="1000000000" step="0.01" required></label>
+            <label>Kurtasje (%)<input name="feePercent" type="number" min="0" max="10" step="0.01" required></label>
+          </div>
+          <p id="strategy-status" class="notice" role="status" hidden></p>
+          <button type="submit" class="primary">Oppdater strategi</button>
+        </form>
+      </section>
+    </div>
+
+    <section class="card" id="historisk-test" aria-labelledby="test-title">
+      <div class="section-head">
+        <div><h2 id="test-title">Historisk test</h2><p id="test-subtitle"></p></div>
+        <form id="dates-form" class="date-form">
+          <label>Fra<input type="date" name="start"></label><label>Til<input type="date" name="end"></label>
+          <button type="submit" class="secondary">Velg periode</button>
+        </form>
+      </div>
+      <p id="dates-status" class="notice" role="status" hidden></p>
+      <p id="test-empty" class="notice" hidden>For få kursdager til å teste strategien i perioden. Velg en lengre periode eller kortere glidende gjennomsnitt.</p>
+      <div id="test-results">
+        <div id="results-metrics" class="metrics"></div>
+        <div class="legend"><span><i class="price"></i>Strategi</span><span><i class="slow"></i>Kjøp og behold</span></div>
+        <div class="chart chart-small"><canvas id="equity-chart" role="img" aria-label="Historisk kontoverdi for strategien og kjøp og behold"></canvas></div>
+        <p id="open-position" class="chart-note" hidden></p>
+        <details class="trade-details">
+          <summary>Historiske handler</summary>
+          <p id="backtest-empty" class="chart-note" hidden>Ingen avsluttede handler i perioden.</p>
+          <div class="scroll" id="backtest-table"><table><thead><tr>
+            <th scope="col">Kjøpt</th><th scope="col">Solgt</th><th scope="col">Kjøpskurs</th><th scope="col">Salgskurs</th><th scope="col">Årsak</th><th scope="col">Resultat</th>
+          </tr></thead><tbody id="backtest-rows"></tbody></table></div>
+        </details>
+      </div>
+    </section>
+
+    <section class="card" id="simulering" aria-labelledby="paper-title">
+      <div class="section-head">
+        <div><h2 id="paper-title">Simulert handel</h2><p id="paper-description"></p></div>
+        <span id="paper-currency" class="tag"></span>
+      </div>
+      <div id="paper-metrics" class="metrics paper-metrics"></div>
+      <form id="paper-form" class="paper-form">
+        <label>Antall<input name="quantity" type="number" min="0.000001" max="1000000000" step="any" value="1" required></label>
+        <button type="submit" class="primary" name="side" value="buy">Simuler kjøp</button>
+        <button type="submit" class="secondary" name="side" value="sell">Simuler salg</button>
+      </form>
+      <p id="paper-status" class="notice" role="status" hidden></p>
+      <details id="paper-details" class="trade-details" open>
+        <summary>Ordrelogg</summary>
+        <p id="paper-empty" class="chart-note">Du har ingen simulerte handler i denne kontoen.</p>
+        <div class="scroll" id="paper-table" hidden><table><thead><tr>
+          <th scope="col">Kursdato</th><th scope="col">Instrument</th><th scope="col">Handel</th><th scope="col">Antall</th><th scope="col">Kurs</th><th scope="col">Kurtasje</th>
+        </tr></thead><tbody id="paper-rows"></tbody></table></div>
+        <button type="button" id="paper-reset" class="text-button" hidden>Nullstill kontoen</button>
+      </details>
+    </section>
+    <footer>Modellsignaler for testing. Alle handler i appen er simulerte.</footer>
+  </main>
+  <script id="market-data" type="application/json">@@MARKET@@</script>
+  <script id="demo-data" type="application/json">@@DEMO@@</script>
+  <script>@@STRATEGY@@</script>
+  <script>@@APP@@</script>
+</body>
+</html>
