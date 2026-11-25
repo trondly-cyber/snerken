@@ -1,0 +1,49 @@
+name: Hent markedskurser
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: "Symboler skilt med komma"
+        required: true
+        default: "EQNR.OL,DNB.OL,KOG.OL,MSFT"
+        type: string
+      period:
+        description: "Historikk"
+        required: true
+        default: "2y"
+        type: choice
+        options:
+          - "1y"
+          - "2y"
+          - "5y"
+
+permissions:
+  contents: read
+
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Installer kurshenter
+        run: python -m pip install -r requirements.txt
+      - name: Hent dagskurser
+        env:
+          MARKET_SYMBOLS: ${{ inputs.symbols }}
+          MARKET_PERIOD: ${{ inputs.period }}
+        run: python scripts/fetch_prices.py --symbols="$MARKET_SYMBOLS" --period="$MARKET_PERIOD" --output=rapport/kurser.json
+      - name: Bygg app med markedskurser
+        run: python scripts/build.py --data rapport/kurser.json --output rapport/Finansradar.html
+      - name: Last opp rapport
+        uses: actions/upload-artifact@v4
+        with:
+          name: Finansradar-marked
+          path: rapport/
+          if-no-files-found: error
+          retention-days: 14
